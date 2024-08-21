@@ -2901,7 +2901,7 @@ module picorv32_wb #(
 	wire [31:0] mem_wdata;
 	wire [ 3:0] mem_wstrb;
 	reg         mem_ready;
-	reg [31:0] mem_rdata;
+	reg [31:0]  mem_rdata;
 
 	wire clk;
 	wire resetn;

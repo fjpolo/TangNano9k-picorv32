@@ -52,153 +52,79 @@ module top (
 `endif
             output wire [5:0] leds
             );
+// // DEBUG
+// assign leds = ~wb_m2s_data[5:0];
 
-   parameter [0:0] BARREL_SHIFTER = 0;
-   parameter [0:0] ENABLE_MUL = 0;
-   parameter [0:0] ENABLE_DIV = 0;
-   parameter [0:0] ENABLE_FAST_MUL = 0;
-   parameter [0:0] ENABLE_COMPRESSED = 0;
-   parameter [0:0] ENABLE_IRQ_QREGS = 0;
 
-   parameter integer          MEMBYTES = 8192;      // This is not easy to change
-   parameter [31:0] STACKADDR = (MEMBYTES);         // Grows down.  Software should set it.
-   parameter [31:0] PROGADDR_RESET = 32'h0000_0000;
-   parameter [31:0] PROGADDR_IRQ = 32'h0000_0000;
+// 
+// Wishbone Bus
+// 
+wire  [31:0]  wb_m2s_addr;
+wire  [31:0]  wb_m2s_data;
+wire  [3:0]   wb_m2s_sel;
+wire          wb_m2s_we;
+wire          wb_m2s_cyc;
+wire          wb_m2s_stb;
+wire  [31:0]  wb_s2m_data;
+wire          wb_s2m_ack;
+wire          wb_s2m_stall;
+wire          wb_s2m_err;
+wire  [31:0]  wb_s2m_err_addr;
 
-   wire                       reset_n; 
-   wire [31:0]                mem_addr;
-   wire [31:0]                mem_wdata;
-   wire [31:0]                mem_rdata;
-   wire [3:0]                 mem_wstrb;
-   wire                       mem_ready;
-   wire                       mem_inst;
-   wire                       leds_sel;
-   wire                       leds_ready;
-   wire [31:0]                leds_data_o;
-   wire                       sram_sel;
-   wire                       sram_ready;
-   wire [31:0]                sram_data_o;
-   wire                       cdt_sel;
-   wire                       cdt_ready;
-   wire [31:0]                cdt_data_o;
-   wire                       uart_sel;
-   wire [31:0]                uart_data_o;
-   wire                       uart_ready;
+// Wishbone interconnect
+wb_interconnect wb_inter(
+  .i_clk(clk),
+  .i_resetn(reset_n),
+  // LEDS
+  .o_leds(leds),
+  // Wishbone
+  .i_wb_addr(wb_m2s_addr),
+  .i_wb_data(wb_m2s_data),
+  .i_wb_sel(wb_s2m_stb),
+  .i_wb_we(wb_m2s_we),
+  .i_wb_cyc(wb_m2s_cyc),
+  .i_wb_stb(wb_m2s_stb),
+  .o_wb_ack(wb_s2m_ack),
+  .o_wb_data(wb_s2m_data),
+  .o_wb_stall(wb_s2m_stall),
+  .o_wb_err(wb_s2m_err),
+  .o_wb_err_address(wb_s2m_err_addr)
+);
 
+wb_picorv32 uut(
+          .clk(clk),
+          .i_resetn(reset_button_n),
+          .uart_rx(uart_rx),
+          .uart_tx(uart_tx),
+          // LEDs
+          .o_leds(leds),
 `ifdef USE_LA
-   // Assigns for external logic analyzer connction
-   assign clk_out = clk;
-   assign b25 = mem_rdata[25];
-   assign b24 = mem_rdata[24];
-   assign b17 = mem_rdata[17];
-   assign b16 = mem_rdata[16];
-   assign b09 = mem_rdata[9];
-   assign b08 = mem_rdata[8];
-   assign b01 = mem_rdata[1];
-   assign b00 = mem_rdata[0];
+          .clk_out(clk_out),
+          .mem_instr,(mem_instr) 
+          .mem_valid(mem_valid),
+          .mem_ready(mem_ready),
+          .b25(b25),
+          .b24(b24),
+          .b17(b17),
+          .b16(b16),
+          .b09(b09),
+          .b08(b08),
+          .b01(b01),
+          .b00(b00),
+          .mem_wstrb(mem_wstrb),
 `endif
-
-   // Establish memory map for all slaves:
-   //   SRAM 00000000 - 0001ffff
-   //   LED  80000000
-   //   UART 80000008 - 8000000f
-   //   CDT  80000010 - 80000014
-   assign sram_sel = mem_valid && (mem_addr < 32'h00002000);
-   assign leds_sel = mem_valid && (mem_addr == 32'h80000000);
-   assign uart_sel = mem_valid && ((mem_addr & 32'hfffffff8) == 32'h80000008);
-   assign cdt_sel = mem_valid && (mem_addr == 32'h80000010);
-
-   // Core can proceed regardless of *which* slave was targetted and is now ready.
-   assign mem_ready = mem_valid & (sram_ready | leds_ready | uart_ready | cdt_ready);
-
-
-   // Select which slave's output data is to be fed to core.
-   assign mem_rdata = sram_sel ? sram_data_o :
-                      leds_sel ? leds_data_o :
-                      uart_sel ? uart_data_o :
-                      cdt_sel  ? cdt_data_o  : 32'h0;
-
-   assign leds = ~leds_data_o[5:0]; // Connect to the LEDs off the FPGA
-
-   reset_control reset_controller
-     (
-      .clk(clk),
-      .reset_button_n(reset_button_n),
-      .reset_n(reset_n)
-      );
-
-   uart_wrap uart
-     (
-      .clk(clk),
-      .reset_n(reset_n),
-      .uart_tx(uart_tx),
-      .uart_rx(uart_rx),
-      .uart_sel(uart_sel),
-      .addr(mem_addr[3:0]),
-      .uart_wstrb(mem_wstrb),
-      .uart_di(mem_wdata),
-      .uart_do(uart_data_o),
-      .uart_ready(uart_ready)
-      );
-
-   countdown_timer cdt
-     (
-      .clk(clk),
-      .reset_n(reset_n),
-      .cdt_sel(cdt_sel),
-      .cdt_data_i(mem_wdata),
-      .we(mem_wstrb),
-      .cdt_ready(cdt_ready),
-      .cdt_data_o(cdt_data_o)
-      );
-
-   sram #(.ADDRWIDTH(13)) memory
-     (
-      .clk(clk),
-      .resetn(reset_n),
-      .sram_sel(sram_sel),
-      .wstrb(mem_wstrb),
-      .addr(mem_addr[12:0]),
-      .sram_data_i(mem_wdata),
-      .sram_ready(sram_ready),
-      .sram_data_o(sram_data_o)
-      );
-   
-   tang_leds soc_leds
-     (
-      .clk(clk),
-      .reset_n(reset_n),
-      .leds_sel(leds_sel),
-      .leds_data_i(mem_wdata[5:0]),
-      .we(mem_wstrb[0]),
-      .leds_ready(leds_ready),
-      .leds_data_o(leds_data_o)
-      );
-
-   picorv32
-     #(
-       .STACKADDR(STACKADDR),
-       .PROGADDR_RESET(PROGADDR_RESET),
-       .PROGADDR_IRQ(PROGADDR_IRQ),
-       .BARREL_SHIFTER(BARREL_SHIFTER),
-       .COMPRESSED_ISA(ENABLE_COMPRESSED),
-       .ENABLE_MUL(ENABLE_MUL),
-       .ENABLE_DIV(ENABLE_DIV),
-       .ENABLE_FAST_MUL(ENABLE_FAST_MUL),
-       .ENABLE_IRQ(1),
-       .ENABLE_IRQ_QREGS(ENABLE_IRQ_QREGS)
-       ) cpu
-       (
-        .clk         (clk),
-        .resetn      (reset_n),
-        .mem_valid   (mem_valid),
-        .mem_instr   (mem_instr),
-        .mem_ready   (mem_ready),
-        .mem_addr    (mem_addr),
-        .mem_wdata   (mem_wdata),
-        .mem_wstrb   (mem_wstrb),
-        .mem_rdata   (mem_rdata),
-        .irq         ('b0)
-        );
+          // Wishbone
+          .o_wb_m2s_addr(wb_m2s_addr),
+          .o_wb_m2s_data(wb_m2s_data),
+          .i_wb_s2m_data(wb_s2m_data),
+          .o_wb_m2s_we(wb_m2s_we),
+          .o_wb_m2s_sel(wb_m2s_sel),
+          .o_wb_m2s_stb(wb_m2s_stb),
+          .i_wb_s2m_ack(wb_s2m_ack),
+          .o_wb_m2s_cyc(wb_m2s_cyc),
+          .i_wb_s2m_stall(wb_s2m_stall),
+          .i_wb_s2m_err(wb_s2m_err),
+          .i_wb_s2m_err_addr(wb_s2m_err_addr)
+          );           
 
 endmodule // top
