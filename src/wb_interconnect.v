@@ -64,7 +64,7 @@ wb_tang_leds wb_soc_leds(
 .o_wb_ack(wb_s2m_ack_leds),
 .i_wb_sel(i_wb_sel),
 .i_wb_we(i_wb_we),
-.o_wb_stall(o_wb_stall),
+.o_wb_stall(wb_s2m_stall_leds),
 .o_wb_err(wb_s2m_err_leds)
 );
 // SEL
@@ -84,8 +84,7 @@ assign o_wb_err = wb_s2m_err_leds;
 assign o_wb_err_address = bus_err_address;
 
 // STALL
-// assign	o_wb_stall = ((wb_m2s_sel_leds)&&(wb_s2m_stall_leds));
-// assign o_leds[0] = ~o_wb_stall;
+assign	o_wb_stall = wb_m2s_sel_leds ? wb_s2m_stall_leds : 0;
 
 // ACK
 reg wb_ack;
