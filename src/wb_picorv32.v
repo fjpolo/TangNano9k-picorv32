@@ -181,6 +181,9 @@ reg [31:0] wb_mem_rdata;
 wire wb_we;
 assign wb_we = (mem_wstrb[0] | mem_wstrb[1] | mem_wstrb[2] | mem_wstrb[3]);
 
+wire wb_slave_sel;
+assign wb_slave_sel = (leds_sel);
+
 initial	o_wb_m2s_cyc = 1'b0;
 initial	o_wb_m2s_stb = 1'b0;
 // BUS
@@ -198,7 +201,7 @@ always @(posedge clk) begin
       if (i_wb_s2m_ack)
          o_wb_m2s_cyc <= 1'b0;
    end else begin
-      if(leds_sel) begin
+      if(wb_slave_sel) begin
          o_wb_m2s_cyc <= 1'b1;
 			o_wb_m2s_stb <= 1'b1;
       end
@@ -210,17 +213,17 @@ always @(posedge clk)
 			o_wb_m2s_we <= (wb_we);
 // ADDRESS 
 always @(posedge clk)
-   if (leds_sel)
+   if (wb_slave_sel)
       o_wb_m2s_addr <= mem_addr;
 // DATA WRITE
 always @(posedge clk)
-   if ((!o_wb_m2s_stb)||(!i_wb_s2m_stall)&&(leds_sel)&&(wb_we))
+   if ((!o_wb_m2s_stb)||(!i_wb_s2m_stall)&&(wb_slave_sel)&&(wb_we))
       o_wb_m2s_data <= mem_wdata;
 // DATA READ
 always @(posedge clk) begin
-   if((leds_sel)&&(wb_we))
+   if((wb_slave_sel)&&(wb_we))
       wb_mem_rdata <= mem_wdata;
-   if((leds_sel)&&(!wb_we))
+   if((wb_slave_sel)&&(!wb_we))
       if (i_wb_s2m_ack)
          wb_mem_rdata <= i_wb_s2m_data;
    else if((o_wb_m2s_cyc)&&(i_wb_s2m_ack))
