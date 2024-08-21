@@ -22,39 +22,6 @@ module wb_tang_leds
     output wire 			    o_wb_stall,
     output wire 			    o_wb_err
    );
-// DEBUG
-parameter WB_SLAVE_ADDR_LED             = 32'h8000_0000;     //   LED  80000000
-reg [5:0] dbg_leds;
-initial dbg_leds = 6'b11_1111;
-always @(posedge i_clk) begin
-    // if(i_wb_stb)
-    //     dbg_leds[0] <= 1'b0;
-    // if(i_wb_cyc)
-    //     dbg_leds[1] <= 1'b0;
-    // if(i_wb_we)
-    //     dbg_leds[2] <= 1'b0;
-    // if(i_wb_addr == WB_SLAVE_ADDR_LED)
-    //     dbg_leds[3] <= 1'b0;
-    if(o_wb_ack)
-        dbg_leds[4] <= 1'b0;
-
-    // dbg_leds[0] <= ~(i_wb_stb);
-    // dbg_leds[1] <= ~(i_wb_cyc);
-    // dbg_leds[2] <= ~(i_wb_we);
-    // dbg_leds[3] <= ~(i_wb_addr == WB_SLAVE_ADDR_LED);
-    // dbg_leds[4] <= ~(o_wb_ack);
-end
-// assign o_leds = dbg_leds;
-// assign o_leds[4] = dbg_leds[4];
-// DEBUG
-// assign o_leds[0] = 1'b0;
-// assign o_leds = ~leds_internal;
-// assign o_leds = ~i_wb_data;
-// assign o_leds[0] = ~o_wb_stall;
-// assign o_leds[1] = ~o_wb_ack;
-// assign o_leds[2] = ~o_wb_err;
-
-
   reg [5:0]  leds_internal;
   reg wb_ack;
   reg [31:0] wb_data;
