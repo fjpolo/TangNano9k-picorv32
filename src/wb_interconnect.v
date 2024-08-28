@@ -67,6 +67,7 @@ wb_tang_leds wb_soc_leds(
 .o_wb_stall(wb_s2m_stall_leds),
 .o_wb_err(wb_s2m_err_leds)
 );
+
 // SEL
 wire wb_none_sel;
 assign wb_m2s_sel_leds  = (i_wb_addr == WB_SLAVE_ADDR_LED);
@@ -82,15 +83,22 @@ always @(posedge i_clk)
 		bus_err_address <= i_wb_addr;
 assign o_wb_err = wb_s2m_err_leds;
 assign o_wb_err_address = bus_err_address;
+// assign o_wb_err = wb_s2m_err_leds;
+// assign o_wb_err_address = i_wb_addr;
 
 // STALL
-assign	o_wb_stall = wb_m2s_sel_leds ? wb_s2m_stall_leds : 0;
+reg wb_stall;
+always @(posedge i_clk)
+	wb_stall <= (wb_s2m_stall_leds);
+assign o_wb_stall = wb_stall;
+// assign	o_wb_stall = wb_m2s_sel_leds ? wb_s2m_stall_leds : 0;
 
 // ACK
 reg wb_ack;
 always @(posedge i_clk)
 	wb_ack <= (wb_s2m_ack_leds);
 assign o_wb_ack = wb_ack;
+// assign o_wb_ack = wb_s2m_ack_leds;
 
 // Return data
 reg [31:0] wb_data;
@@ -100,5 +108,6 @@ always @(posedge i_clk)
 	else
 		wb_data <= 32'h0;
 assign o_wb_data = wb_data;
+// assign o_wb_data = wb_s2m_data_leds;
 
 endmodule
