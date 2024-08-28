@@ -188,46 +188,88 @@ initial	o_wb_m2s_cyc = 1'b0;
 initial	o_wb_m2s_stb = 1'b0;
 // BUS
 always @(posedge clk) begin
-   if ((~i_resetn)||((i_wb_s2m_err)&&(o_wb_m2s_cyc))) begin
-      // Clear bus on reset or error
+   if(~i_resetn) begin
       o_wb_m2s_cyc <= 1'b0;
       o_wb_m2s_stb <= 1'b0;
-   end else if(o_wb_m2s_stb) begin
-      if (!i_wb_s2m_stall)
-         o_wb_m2s_stb <= 1'b0;
-      if ((!i_wb_s2m_stall)&&(i_wb_s2m_ack))
-			o_wb_m2s_cyc <= 1'b0;
-   end else if (o_wb_m2s_cyc) begin
-      if (i_wb_s2m_ack)
-         o_wb_m2s_cyc <= 1'b0;
-   end else begin
-      if(wb_slave_sel) begin
+   end else begin          
+      if((wb_slave_sel)&&(!i_wb_s2m_stall)&&(!i_wb_s2m_ack)&&(!o_wb_m2s_cyc)) begin
          o_wb_m2s_cyc <= 1'b1;
-			o_wb_m2s_stb <= 1'b1;
+         o_wb_m2s_stb <= 1'b1;
+      end else if((!i_wb_s2m_stall)&&(!o_wb_m2s_stb)&&(o_wb_m2s_cyc)&&(i_wb_s2m_ack)) begin
+         o_wb_m2s_cyc <= 1'b0;
       end
    end
 end
 // WE
 always @(posedge clk)
-		if (!o_wb_m2s_cyc)
-			o_wb_m2s_we <= (wb_we);
+   if (wb_slave_sel)
+      o_wb_m2s_we <= (wb_we);
 // ADDRESS 
 always @(posedge clk)
    if (wb_slave_sel)
       o_wb_m2s_addr <= mem_addr;
 // DATA WRITE
-always @(posedge clk)
-   if ((!o_wb_m2s_stb)||(!i_wb_s2m_stall)&&(wb_slave_sel)&&(wb_we))
-      o_wb_m2s_data <= mem_wdata;
+always @(posedge clk) begin
+   if(~i_resetn)
+      o_wb_m2s_data <= 32'h0;
+   else
+      if((wb_slave_sel)&&(wb_we))
+         o_wb_m2s_data <= mem_wdata;
+end
 // DATA READ
 always @(posedge clk) begin
-   if((wb_slave_sel)&&(wb_we))
-      wb_mem_rdata <= mem_wdata;
-   if((wb_slave_sel)&&(!wb_we))
-      if (i_wb_s2m_ack)
+   if(~i_resetn)
+      wb_mem_rdata <= 32'h0;
+   else
+      // if((!wb_we)&&(o_wb_m2s_cyc)&&(!o_wb_m2s_stb)&&(i_wb_s2m_ack)&&(!i_wb_s2m_stall))
+      // if((!o_wb_m2s_we)&&(o_wb_m2s_cyc)&&(!o_wb_m2s_stb)&&(i_wb_s2m_ack)&&(!i_wb_s2m_stall))
+      if((o_wb_m2s_cyc)&&(i_wb_s2m_ack))
          wb_mem_rdata <= i_wb_s2m_data;
-   else if((o_wb_m2s_cyc)&&(i_wb_s2m_ack))
-      wb_mem_rdata <= i_wb_s2m_data;
 end
+
+// DEBUG - BEGIN
+reg [5:0] dbg_leds;
+initial dbg_leds = 6'b00_0000;
+
+// // write to slave
+// always @(posedge clk) begin
+//   if(o_wb_m2s_stb)
+//     dbg_leds[0] <= 1'b1;
+//   if(o_wb_m2s_cyc)
+//     dbg_leds[1] <= 1'b1;
+//   if(i_wb_s2m_stall)
+//     dbg_leds[2] <= 1'b1;
+//   if(o_wb_m2s_we)
+//     dbg_leds[3] <= 1'b1;
+//   if((o_wb_m2s_stb)&&(o_wb_m2s_cyc)&&(!i_wb_s2m_stall))
+//     dbg_leds[4] <= 1'b1;
+//   if(((o_wb_m2s_stb)&&(o_wb_m2s_cyc)&&(!i_wb_s2m_stall))&&(o_wb_m2s_we))
+//     dbg_leds[5] <= 1'b1;
+// end
+// assign o_leds = ~dbg_leds;
+
+// // read from slave
+// always @(posedge clk) begin
+//   if(o_wb_m2s_stb)
+//     dbg_leds[0] <= 1'b1;
+//   if(o_wb_m2s_cyc)
+//     dbg_leds[1] <= 1'b1;
+//   if(i_wb_s2m_stall)
+//     dbg_leds[2] <= 1'b1;
+//   if(!o_wb_m2s_we)
+//     dbg_leds[3] <= 1'b1;
+//   if((o_wb_m2s_stb)&&(o_wb_m2s_cyc)&&(!i_wb_s2m_stall))
+//     dbg_leds[4] <= 1'b1;
+//   if(((o_wb_m2s_stb)&&(o_wb_m2s_cyc)&&(!i_wb_s2m_stall))&&(!o_wb_m2s_we))
+//     dbg_leds[5] <= 1'b1;
+// end
+// assign o_leds = ~dbg_leds;
+
+// // Diverse tests
+// assign o_leds = ~mem_wdata[5:0]; 
+// assign o_leds = ~o_wb_m2s_data[5:0]; 
+// assign o_leds = ~i_wb_s2m_data[5:0]; 
+assign o_leds = ~wb_mem_rdata[5:0]; 
+// DEBUG - END
 
 endmodule // top

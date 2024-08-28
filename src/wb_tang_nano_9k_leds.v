@@ -18,10 +18,55 @@ module wb_tang_leds
     input  wire				    i_wb_cyc,
     input  wire				    i_wb_stb,
     output wire				    o_wb_ack,
-    output wire	[31:0] 	        o_wb_data,
+    output wire	[31:0] 	  o_wb_data,
     output wire 			    o_wb_stall,
     output wire 			    o_wb_err
    );
+
+// DEBUG - BEGIN
+reg [5:0] dbg_leds;
+initial dbg_leds = 6'b00_0000;
+
+// // write to slave
+// always @(posedge i_clk) begin
+//   if(i_wb_stb)
+//     dbg_leds[0] <= 1'b1;
+//   if(i_wb_cyc)
+//     dbg_leds[1] <= 1'b1;
+//   if(o_wb_stall)
+//     dbg_leds[2] <= 1'b1;
+//   if(i_wb_we)
+//     dbg_leds[3] <= 1'b1;
+//   if(valid)
+//     dbg_leds[4] <= 1'b1;
+//   if((valid)&&(i_wb_we))
+//     dbg_leds[5] <= 1'b1;
+// end
+// assign o_leds = ~dbg_leds;
+
+// // read from slave
+// always @(posedge i_clk) begin
+//   if(i_wb_stb)
+//     dbg_leds[0] <= 1'b1;
+//   if(i_wb_cyc)
+//     dbg_leds[1] <= 1'b1;
+//   if(o_wb_stall)
+//     dbg_leds[2] <= 1'b1;
+//   if(!i_wb_we)
+//     dbg_leds[3] <= 1'b1;
+//   if(valid)
+//     dbg_leds[4] <= 1'b1;
+//   if((valid)&&(!i_wb_we))
+//     dbg_leds[5] <= 1'b1;
+// end
+// assign o_leds = ~dbg_leds;
+
+// // Diverse tests
+// assign o_leds = ~i_wb_data[5:0]; 
+// assign o_leds = ~leds_internal[5:0]; 
+// assign o_leds = ~o_wb_data[5:0]; 
+// DEBUG - END
+
   reg [5:0]  leds_internal;
   reg wb_ack;
   reg [31:0] wb_data;
@@ -37,24 +82,26 @@ module wb_tang_leds
   always @(posedge i_clk)
 		if ((valid)&&(i_wb_we))
 			leds_internal <= i_wb_data[5:0];
-	// Read
-	always @(posedge i_clk) begin
-    if(!i_reset_n)
-      wb_data <= 32'h0;
-    else 
-      if (valid)
-        wb_data <= {26'b00000000000000000000000000, leds_internal};
-  end
-  // ACK
-  always @(posedge i_clk)
-    wb_ack <= i_wb_stb;
+	// // Read
+	// always @(posedge i_clk) begin
+  //   if(!i_reset_n)
+  //     wb_data <= 32'h0;
+  //   else 
+  //     if (valid)
+  //       wb_data <= {26'b00000000000000000000000000, leds_internal};
+  // end
+  // assign o_wb_data = wb_data;
+  // // ACK
+  // always @(posedge i_clk)
+  //   wb_ack <= i_wb_stb;
+  // assign o_wb_ack = wb_ack;
 
   assign o_wb_stall  = 0;
   assign o_wb_err = 0;
-  assign o_wb_ack = wb_ack;
-  assign o_wb_data = wb_data;
+  assign o_wb_ack = i_wb_stb;
+  assign o_wb_data = {26'b00000000000000000000000000, leds_internal};
 
-  assign o_leds = ~leds_internal;
+  // assign o_leds = ~leds_internal;
 
 
   /*********************************/
