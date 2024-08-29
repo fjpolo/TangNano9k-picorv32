@@ -269,7 +269,7 @@ initial dbg_leds = 6'b00_0000;
 // assign o_leds = ~mem_wdata[5:0]; 
 // assign o_leds = ~o_wb_m2s_data[5:0]; 
 // assign o_leds = ~i_wb_s2m_data[5:0]; 
-assign o_leds = ~wb_mem_rdata[5:0]; 
+// assign o_leds = ~wb_mem_rdata[5:0]; 
 // DEBUG - END
 
 endmodule // top
