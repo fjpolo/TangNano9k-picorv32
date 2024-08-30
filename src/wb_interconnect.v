@@ -94,30 +94,50 @@ wb_countdown_timer wb_cdt(
 // SEL
 wire wb_none_sel;
 assign wb_m2s_sel_leds  = (i_wb_addr == WB_SLAVE_ADDR_LED);
-assign wb_m2s_sel_cdt  = (i_wb_addr == WB_SLAVE_ADDR_CDT);
+assign wb_m2s_sel_cdt   = (i_wb_addr == WB_SLAVE_ADDR_CDT);
+// assign wb_none_sel      = (!wb_m2s_sel_leds);
 assign wb_none_sel      = (!wb_m2s_sel_leds)&&(!wb_m2s_sel_cdt);
 
 // ERROR
 reg wb_err;
+reg wb_err_slaves;
 reg bus_err_address;
 always @(posedge i_clk)
 	wb_err <= (i_wb_stb)&&(wb_none_sel);
+always @(posedge i_clk) begin
+    if(wb_s2m_err_leds)
+	    wb_err_slaves <= (wb_s2m_err_leds);
+    else if(wb_s2m_err_cdt) 
+        wb_err_slaves <= (wb_s2m_err_cdt);
+    else 
+	    wb_err_slaves <= 1'b0;
+end
 always @(posedge i_clk)
 	if (o_wb_err)
 		bus_err_address <= i_wb_addr;
-assign o_wb_err = (wb_s2m_err_leds)||(wb_s2m_err_cdt);
+assign o_wb_err = (wb_err)||(wb_err_slaves);
 assign o_wb_err_address = bus_err_address;
 
 // STALL
 reg wb_stall;
 always @(posedge i_clk)
-	wb_stall <= (wb_s2m_stall_leds)||(wb_s2m_stall_cdt);
+    if(wb_s2m_stall_leds)
+	    wb_stall <= (wb_s2m_stall_leds);
+    else if(wb_s2m_stall_cdt)
+	    wb_stall <= wb_s2m_stall_cdt;
+    else 
+	    wb_stall <= 1'b0;
 assign o_wb_stall = wb_stall;
 
 // ACK
 reg wb_ack;
 always @(posedge i_clk)
-	wb_ack <= (wb_s2m_ack_leds)||(wb_s2m_ack_cdt);
+    if(wb_s2m_ack_leds)
+	    wb_ack <= (wb_s2m_ack_leds)||(wb_s2m_ack_cdt);
+    else if(wb_s2m_ack_cdt)
+	    wb_ack <= (wb_s2m_ack_leds)||(wb_s2m_ack_cdt);
+    else 
+	    wb_ack <= 1'b0;
 assign o_wb_ack = wb_ack;
 
 // Return data
@@ -125,7 +145,7 @@ reg [31:0] wb_data;
 always @(posedge i_clk) begin
 	if (wb_s2m_ack_leds)
 		wb_data <= wb_s2m_data_leds;
-    if (wb_s2m_ack_cdt)
+    else if (wb_s2m_ack_cdt)
 		wb_data <= wb_s2m_data_cdt;
 	else
 		wb_data <= 32'h0;
