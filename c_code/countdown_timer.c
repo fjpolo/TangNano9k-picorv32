@@ -4,6 +4,7 @@
  */
 
 #include "countdown_timer.h"
+#include "uart.h"
 
 #define CDT_COUNTER ((volatile unsigned int *) 0x80000010)
 #define CDT_COUNTER_H0 ((volatile unsigned short *) 0x80000010)
@@ -57,4 +58,25 @@ void cdt_delay(const unsigned int value)
 {
   cdt_write(value);
   while (*CDT_COUNTER) {}
+
+  // // TEST
+  // unsigned int v;
+  // while (1) {
+  //   cdt_write(100000);
+  //   while(1){
+  //     v = cdt_read();
+  //     uart_print_hex(v);
+  //     uart_puts("\r\n");
+  //   }
+  // }
+
+  // // TEST
+  // unsigned int v;
+  // while (1) {
+  //   v = cdt_read();
+  //   cdt_write(v+1);
+  //   uart_print_hex(v);
+  //   uart_puts("\r\n");
+  // }
+
 }

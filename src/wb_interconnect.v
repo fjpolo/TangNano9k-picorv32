@@ -43,7 +43,6 @@ end
 // DEBUG
 // assign o_leds[0] = 1'b0;
 
-
 // WB LEDs
 wire            wb_m2s_sel_leds;
 wire  [31:0]    wb_s2m_data_leds;
@@ -68,10 +67,35 @@ wb_tang_leds wb_soc_leds(
 .o_wb_err(wb_s2m_err_leds)
 );
 
+// WB CDT
+wire            wb_m2s_sel_cdt;
+wire  [31:0]    wb_s2m_data_cdt;
+wire            wb_s2m_ack_cdt;
+wire            wb_s2m_err_cdt;
+wire            wb_s2m_stall_cdt;
+wb_countdown_timer wb_cdt(
+.i_clk(i_clk),
+.i_reset_n(i_resetn),
+// LEDS
+.o_leds(o_leds),
+// Wishbone
+.i_wb_addr(i_wb_addr),
+.i_wb_data(i_wb_data),
+.i_wb_stb((i_wb_stb)&&(wb_m2s_sel_cdt)),
+.i_wb_cyc(i_wb_cyc),
+.o_wb_data(wb_s2m_data_cdt),
+.o_wb_ack(wb_s2m_ack_cdt),
+.i_wb_sel(i_wb_sel),
+.i_wb_we(i_wb_we),
+.o_wb_stall(wb_s2m_stall_cdt),
+.o_wb_err(wb_s2m_err_cdt)
+);
+
 // SEL
 wire wb_none_sel;
 assign wb_m2s_sel_leds  = (i_wb_addr == WB_SLAVE_ADDR_LED);
-assign wb_none_sel      = (!wb_m2s_sel_leds);
+assign wb_m2s_sel_cdt  = (i_wb_addr == WB_SLAVE_ADDR_CDT);
+assign wb_none_sel      = (!wb_m2s_sel_leds)&&(!wb_m2s_sel_cdt);
 
 // ERROR
 reg wb_err;
@@ -81,33 +105,31 @@ always @(posedge i_clk)
 always @(posedge i_clk)
 	if (o_wb_err)
 		bus_err_address <= i_wb_addr;
-assign o_wb_err = wb_s2m_err_leds;
+assign o_wb_err = (wb_s2m_err_leds)||(wb_s2m_err_cdt);
 assign o_wb_err_address = bus_err_address;
-// assign o_wb_err = wb_s2m_err_leds;
-// assign o_wb_err_address = i_wb_addr;
 
 // STALL
 reg wb_stall;
 always @(posedge i_clk)
-	wb_stall <= (wb_s2m_stall_leds);
+	wb_stall <= (wb_s2m_stall_leds)||(wb_s2m_stall_cdt);
 assign o_wb_stall = wb_stall;
-// assign	o_wb_stall = wb_m2s_sel_leds ? wb_s2m_stall_leds : 0;
 
 // ACK
 reg wb_ack;
 always @(posedge i_clk)
-	wb_ack <= (wb_s2m_ack_leds);
+	wb_ack <= (wb_s2m_ack_leds)||(wb_s2m_ack_cdt);
 assign o_wb_ack = wb_ack;
-// assign o_wb_ack = wb_s2m_ack_leds;
 
 // Return data
 reg [31:0] wb_data;
-always @(posedge i_clk)
+always @(posedge i_clk) begin
 	if (wb_s2m_ack_leds)
 		wb_data <= wb_s2m_data_leds;
+    if (wb_s2m_ack_cdt)
+		wb_data <= wb_s2m_data_cdt;
 	else
 		wb_data <= 32'h0;
+end
 assign o_wb_data = wb_data;
-// assign o_wb_data = wb_s2m_data_leds;
 
 endmodule

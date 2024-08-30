@@ -209,7 +209,7 @@ int main()
   else
     uart_puts("memory test PASSED.\r\n");
 
-  cdt_test();
+  // cdt_test();
   
   /* Test UART input */
   uart_rx_test();
