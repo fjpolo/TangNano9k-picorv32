@@ -1,0 +1,20 @@
+[tasks]
+cvr
+prf
+
+[options]
+prf: mode prove
+prf: depth 32
+cvr: mode cover
+cvr: depth 32
+
+[engines]
+smtbmc
+
+[script]
+read -sv -DWB_CDT_STANDALONE -formal wb_countdown_timer.v
+cvr: hierarchy -top wb_countdown_timer
+prep -top wb_countdown_timer
+
+[files]
+wb_countdown_timer.v
