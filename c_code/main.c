@@ -195,6 +195,7 @@ int main()
 {
   int i;
   unsigned char v, ch;
+  unsigned int counter;
 
   set_leds(6);
   la_wtest();
@@ -226,21 +227,21 @@ int main()
     uart_puts("\r\nLoop ");
     uart_print_hex(i);
     uart_puts("\r\n");
-    v = get_leds();
-    set_leds(v+1);
+    set_leds(v);
+    v = get_leds() + 1;
 
     uart_puts(&v);
     uart_puts("\r\n");
     
-    // uart_puts("Four score and seven years ago our fathers brought forth upon this\r\n"
-	  //     "continent, a new nation, conceived in Liberty, and dedicated to the\r\n"
-	  //     "proposition that all men are created equal.  Now we are engaged in a\r\n"
-	  //     "great civil war, testing whether that nation, or any nation so\r\n"
-	  //     "conceived and so dedicated, can long endure. We are met on a great\r\n"
-	  //     "battle-field of that war. We have come to dedicate a portion of that\r\n"
-	  //     "field, as a final resting place for those who here gave their lives that\r\n"
-	  //     "that nation might live. It is altogether fitting and proper that we\r\n"
-	  //     "should do this.\r\n");
+    uart_puts("Four score and seven years ago our fathers brought forth upon this\r\n"
+	      "continent, a new nation, conceived in Liberty, and dedicated to the\r\n"
+	      "proposition that all men are created equal.  Now we are engaged in a\r\n"
+	      "great civil war, testing whether that nation, or any nation so\r\n"
+	      "conceived and so dedicated, can long endure. We are met on a great\r\n"
+	      "battle-field of that war. We have come to dedicate a portion of that\r\n"
+	      "field, as a final resting place for those who here gave their lives that\r\n"
+	      "that nation might live. It is altogether fitting and proper that we\r\n"
+	      "should do this.\r\n");
     
     uart_puts("time is ");
     uart_print_hex(readtime());

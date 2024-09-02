@@ -40,8 +40,11 @@ always @(posedge i_clk) begin
         dbg_leds[4] <= 1'b0;
 end
 // assign o_leds = dbg_leds;
-// DEBUG
 // assign o_leds[0] = 1'b0;
+assign o_leds = ~wb_s2m_data_leds;
+// assign o_leds = ~wb_s2m_data_cdt[29:24];
+// assign o_leds = o_wb_data;
+// DEBUG END
 
 // WB LEDs
 wire            wb_m2s_sel_leds;
@@ -95,7 +98,6 @@ wb_countdown_timer wb_cdt(
 wire wb_none_sel;
 assign wb_m2s_sel_leds  = (i_wb_addr == WB_SLAVE_ADDR_LED);
 assign wb_m2s_sel_cdt   = (i_wb_addr == WB_SLAVE_ADDR_CDT);
-// assign wb_none_sel      = (!wb_m2s_sel_leds);
 assign wb_none_sel      = (!wb_m2s_sel_leds)&&(!wb_m2s_sel_cdt);
 
 // ERROR

@@ -43,7 +43,7 @@ assign o_wb_err = 0;
 assign o_wb_ack = i_wb_stb;
 assign o_wb_data = {26'b00000000000000000000000000, leds_internal};
 
-assign o_leds = ~leds_internal;
+// assign o_leds = ~leds_internal;
 
 
 /*********************************/

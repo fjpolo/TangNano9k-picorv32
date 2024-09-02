@@ -6,14 +6,6 @@
 #include "countdown_timer.h"
 #include "uart.h"
 
-#define CDT_COUNTER ((volatile unsigned int *) 0x80000010)
-#define CDT_COUNTER_H0 ((volatile unsigned short *) 0x80000010)
-#define CDT_COUNTER_H2 ((volatile unsigned short *) 0x80000012)
-#define CDT_COUNTER_B0 ((volatile unsigned char *) 0x80000010)
-#define CDT_COUNTER_B1 ((volatile unsigned char *) 0x80000011)
-#define CDT_COUNTER_B2 ((volatile unsigned char *) 0x80000012)
-#define CDT_COUNTER_B3 ((volatile unsigned char *) 0x80000013)
-
 void cdt_wbyte0(const unsigned char value)
 {
   *CDT_COUNTER_B0 = value;
