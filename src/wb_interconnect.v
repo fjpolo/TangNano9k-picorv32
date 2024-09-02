@@ -41,7 +41,7 @@ always @(posedge i_clk) begin
 end
 // assign o_leds = dbg_leds;
 // assign o_leds[0] = 1'b0;
-assign o_leds = ~wb_s2m_data_leds;
+// assign o_leds = ~wb_s2m_data_leds;
 // assign o_leds = ~wb_s2m_data_cdt[29:24];
 // assign o_leds = o_wb_data;
 // DEBUG END
