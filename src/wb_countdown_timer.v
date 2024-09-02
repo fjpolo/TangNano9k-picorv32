@@ -45,4 +45,49 @@ assign o_wb_err = 0;
 assign o_wb_ack = i_wb_stb;
 assign o_wb_data = r_count;
 
+/*********************************/
+/* Formal Verification
+/*********************************/
+`ifdef	FORMAL
+
+	`ifdef	WB_CDT_STANDALONE
+	`define	ASSUME	assume
+	`else
+	`define	ASSUME	assert
+	`endif
+
+	// Global clock
+	// (* gclk *) wire f_gbl_clk;
+		
+	// f_past_valid
+	reg	f_past_valid;
+	initial	f_past_valid = 1'b0;
+	always @(posedge i_clk)
+		f_past_valid <= 1'b1;
+
+	// BMC and induction
+    
+	//
+	// Contract
+	//
+    always @(posedge i_clk)
+        if((f_past_valid)&&($past(i_reset_n)))
+            if(($past(r_count) != 0)&&((!$past(valid))&&(!$past(i_wb_we))))
+                assert(r_count == ($past(r_count) - 1));
+    always @(posedge i_clk)
+        if((f_past_valid)&&($past(i_reset_n)))
+            if(($past(r_count) == 0)&&((!$past(valid))&&(!$past(i_wb_we))))
+                assert(r_count == 0);
+    always @(posedge i_clk)
+        if((f_past_valid)&&($past(i_reset_n)))
+            if(($past(valid))&&($past(i_wb_we)))
+                assert(r_count == $past(i_wb_data));
+
+	// 
+	// Cover
+	//
+
+`endif // FORMAL
+
+
 endmodule
