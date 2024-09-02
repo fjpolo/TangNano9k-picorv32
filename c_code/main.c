@@ -241,7 +241,7 @@ int main()
 	      "battle-field of that war. We have come to dedicate a portion of that\r\n"
 	      "field, as a final resting place for those who here gave their lives that\r\n"
 	      "that nation might live. It is altogether fitting and proper that we\r\n"
-	      "should do this.\r\n");
+	      "should do this.\r\n\r\n");
     
     uart_puts("time is ");
     uart_print_hex(readtime());
