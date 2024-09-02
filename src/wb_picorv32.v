@@ -91,16 +91,17 @@ module wb_picorv32 (
    assign cdt_sel =  mem_valid && (mem_addr == 32'h80000010);
 
    // Core can proceed regardless of *which* slave was targetted and is now ready.
-   // assign leds_ready = i_wb_s2m_ack;
-   assign leds_ready = (leds_sel);
+   assign leds_ready = (leds_sel)&&(!i_wb_s2m_stall)&&(i_wb_s2m_ack);
+   assign cdt_ready = (cdt_sel)&&(!i_wb_s2m_stall)&&(i_wb_s2m_ack);
    assign mem_ready = mem_valid & (sram_ready | leds_ready | uart_ready | cdt_ready);
 
 
    // Select which slave's output data is to be fed to core.
-   assign mem_rdata = sram_sel ? sram_data_o :
-                      leds_sel ? wb_mem_rdata :
-                      uart_sel ? uart_data_o :
-                      cdt_sel  ? cdt_data_o  : 32'h0;
+   assign mem_rdata = sram_sel ? sram_data_o    :
+                      uart_sel ? uart_data_o    :
+                      leds_sel ? wb_mem_rdata   :
+                      cdt_sel  ? wb_mem_rdata   : 
+                      32'h0;
 
   reg [5:0] leds;
   always @(posedge clk)
@@ -125,17 +126,6 @@ module wb_picorv32 (
       .uart_di(mem_wdata),
       .uart_do(uart_data_o),
       .uart_ready(uart_ready)
-      );
-
-   countdown_timer cdt
-     (
-      .clk(clk),
-      .reset_n(reset_n),
-      .cdt_sel(cdt_sel),
-      .cdt_data_i(mem_wdata),
-      .we(mem_wstrb),
-      .cdt_ready(cdt_ready),
-      .cdt_data_o(cdt_data_o)
       );
 
    sram #(.ADDRWIDTH(13)) memory
@@ -182,7 +172,7 @@ wire wb_we;
 assign wb_we = (mem_wstrb[0] | mem_wstrb[1] | mem_wstrb[2] | mem_wstrb[3]);
 
 wire wb_slave_sel;
-assign wb_slave_sel = (leds_sel);
+assign wb_slave_sel = (leds_sel)||(cdt_sel);
 
 initial	o_wb_m2s_cyc = 1'b0;
 initial	o_wb_m2s_stb = 1'b0;

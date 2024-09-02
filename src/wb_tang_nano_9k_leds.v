@@ -1,14 +1,19 @@
-/* Copyright 2024 Grug Huhler.  License SPDX BSD-2-Clause. */
 
-// tang_leds is a toy peripheral that allows software on the
-// core to write to a register that controls the LEDs on the
-// Tang Nano 9K board.  It can also read this register,
+/*****************************************************************
+/* Copyright 2024 Grug Huhler.  License SPDX BSD-2-Clause.
+/* Copyright 2024 @fjpolo.  License SPDX BSD-2-Clause.
+/* 
+/* tang_leds is a toy peripheral that allows software on the
+/* core to write to a register that controls the LEDs on the
+/* Tang Nano 9K board.  It can also read this register,
+/****************************************************************/
 `default_nettype none
 
 module wb_tang_leds
   (
     input wire            i_clk,
     input wire            i_reset_n,
+    // DEBUG LEDS
     output wire [5:0]     o_leds,
     // Wishbone
     input  wire	[31:0] 		i_wb_addr,
@@ -38,7 +43,7 @@ assign o_wb_err = 0;
 assign o_wb_ack = i_wb_stb;
 assign o_wb_data = {26'b00000000000000000000000000, leds_internal};
 
-assign o_leds = ~leds_internal;
+// assign o_leds = ~leds_internal;
 
 
 /*********************************/
