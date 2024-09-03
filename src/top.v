@@ -50,7 +50,10 @@ module top (
             output wire       b00,
             output wire [3:0] mem_wstrb,
 `endif
-            output wire [5:0] leds
+            // LEDs
+            output wire [5:0] leds,
+            // GPIO0
+            inout wire  [7:0] gpio0
             );
 // // DEBUG
 // assign leds = ~wb_m2s_data[5:0];
@@ -77,6 +80,8 @@ wb_interconnect wb_inter(
   .i_resetn(reset_n),
   // LEDS
   .o_leds(leds),
+  // GPIO0
+  .io_gpio0(),
   // Wishbone
   .i_wb_addr(wb_m2s_addr),
   .i_wb_data(wb_m2s_data),
