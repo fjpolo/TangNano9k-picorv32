@@ -25,7 +25,8 @@ parameter WB_SLAVE_ADD_SRAM             = 32'h0000_0000;     //   SRAM 00000000 
 parameter WB_SLAVE_ADDR_LED             = 32'h8000_0000;     //   LED  80000000
 parameter WB_SLAVE_ADDR_UART            = 32'h8000_0008;     //   UART 80000008 - 8000000f
 parameter WB_SLAVE_ADDR_CDT             = 32'h8000_0010;     //   CDT  80000010 - 80000014
-parameter WB_SLAVE_ADDR_GPIO0           = 32'h8000_0020;     //   GPIO0
+parameter WB_SLAVE_ADDR_GPIO0_DATA      = 32'h8000_0020;     //   GPIO0
+parameter WB_SLAVE_ADDR_GPIO0_DIR       = 32'h8000_0021;     //   GPIO0
 
 // DEBUG
 reg [5:0] dbg_leds;
@@ -85,7 +86,7 @@ wb_countdown_timer wb_cdt(
 // LEDS
 .o_leds(o_leds),
 // Wishbone
-.i_wb_addr(i_wb_addr),
+.i_wb_addr(i_wb_addr[0]),
 .i_wb_data(i_wb_data),
 .i_wb_stb((i_wb_stb)&&(wb_m2s_sel_cdt)),
 .i_wb_cyc(i_wb_cyc),
@@ -142,7 +143,7 @@ wb_gpio gpio0 (
 wire wb_none_sel;
 assign wb_m2s_sel_leds  = (i_wb_addr == WB_SLAVE_ADDR_LED);
 assign wb_m2s_sel_cdt   = (i_wb_addr == WB_SLAVE_ADDR_CDT);
-assign wb_m2s_sel_gpio0   = (i_wb_addr == WB_SLAVE_ADDR_GPIO0);
+assign wb_m2s_sel_gpio0   = (i_wb_addr == WB_SLAVE_ADDR_GPIO0)||(i_wb_addr == WB_SLAVE_ADDR_GPIO0_DIR);
 assign wb_none_sel      = (!wb_m2s_sel_leds)&&(!wb_m2s_sel_cdt)&&(!wb_m2s_sel_gpio0);
 
 // ERROR

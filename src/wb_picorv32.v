@@ -91,7 +91,7 @@ module wb_picorv32 (
    assign leds_sel = mem_valid && (mem_addr == 32'h80000000);
    assign uart_sel = mem_valid && ((mem_addr & 32'hfffffff8) == 32'h80000008);
    assign cdt_sel =  mem_valid && (mem_addr == 32'h80000010);
-   assign gpio0_sel =  mem_valid && (mem_addr == 32'h80000020);
+   assign gpio0_sel =  mem_valid && ((mem_addr == 32'h80000020)||(mem_addr == 32'h80000021));
 
    // Core can proceed regardless of *which* slave was targetted and is now ready.
    assign leds_ready = (leds_sel)&&(!i_wb_s2m_stall)&&(i_wb_s2m_ack);
