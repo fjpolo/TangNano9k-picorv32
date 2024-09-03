@@ -143,7 +143,7 @@ wb_gpio gpio0 (
 wire wb_none_sel;
 assign wb_m2s_sel_leds  = (i_wb_addr == WB_SLAVE_ADDR_LED);
 assign wb_m2s_sel_cdt   = (i_wb_addr == WB_SLAVE_ADDR_CDT);
-assign wb_m2s_sel_gpio0   = (i_wb_addr == WB_SLAVE_ADDR_GPIO0)||(i_wb_addr == WB_SLAVE_ADDR_GPIO0_DIR);
+assign wb_m2s_sel_gpio0   = (i_wb_addr == WB_SLAVE_ADDR_GPIO0_DATA)||(i_wb_addr == WB_SLAVE_ADDR_GPIO0_DIR);
 assign wb_none_sel      = (!wb_m2s_sel_leds)&&(!wb_m2s_sel_cdt)&&(!wb_m2s_sel_gpio0);
 
 // ERROR
