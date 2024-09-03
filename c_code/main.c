@@ -10,6 +10,7 @@
 #include "leds.h"
 #include "uart.h"
 #include "countdown_timer.h"
+#include "gpio.h"
 
 #define MEMSIZE 1000
 unsigned long mem[MEMSIZE];
@@ -191,6 +192,11 @@ void cdt_test(void)
 #endif
 }
 
+void gpio0_test(void)
+{
+ 
+}
+
 int main()
 {
   int i;
@@ -211,6 +217,8 @@ int main()
     uart_puts("memory test PASSED.\r\n");
 
   cdt_test();
+
+  gpio0_test();
   
   /* Test UART input */
   uart_rx_test();
