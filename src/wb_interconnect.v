@@ -5,6 +5,8 @@ module wb_interconnect(
     input wire          i_resetn,
     // LEDS
     input wire  [5:0]   o_leds,
+    // GPIO0
+    inout wire	[7:0]	io_gpio0,
     // Wishbone
     input  wire	[31:0] 	i_wb_addr,
     input  wire	[31:0] 	i_wb_data,
@@ -23,6 +25,8 @@ parameter WB_SLAVE_ADD_SRAM             = 32'h0000_0000;     //   SRAM 00000000 
 parameter WB_SLAVE_ADDR_LED             = 32'h8000_0000;     //   LED  80000000
 parameter WB_SLAVE_ADDR_UART            = 32'h8000_0008;     //   UART 80000008 - 8000000f
 parameter WB_SLAVE_ADDR_CDT             = 32'h8000_0010;     //   CDT  80000010 - 80000014
+parameter WB_SLAVE_ADDR_GPIO0_DATA      = 32'h8000_0020;     //   GPIO0
+parameter WB_SLAVE_ADDR_GPIO0_DIR       = 32'h8000_0021;     //   GPIO0
 
 // DEBUG
 reg [5:0] dbg_leds;
@@ -82,7 +86,7 @@ wb_countdown_timer wb_cdt(
 // LEDS
 .o_leds(o_leds),
 // Wishbone
-.i_wb_addr(i_wb_addr),
+.i_wb_addr(i_wb_addr[0]),
 .i_wb_data(i_wb_data),
 .i_wb_stb((i_wb_stb)&&(wb_m2s_sel_cdt)),
 .i_wb_cyc(i_wb_cyc),
@@ -94,11 +98,53 @@ wb_countdown_timer wb_cdt(
 .o_wb_err(wb_s2m_err_cdt)
 );
 
+// WB GPIO0
+wire [7:0]	gpio0_in;
+wire [7:0]	gpio0_out;
+wire [7:0]	gpio0_dir;
+
+// Tristate logic for IO
+// 0 = input, 1 = output
+genvar                    i;
+generate
+	for (i = 0; i < 8; i = i+1) begin: gpio0_tris
+		assign io_gpio0[i] = gpio0_dir[i] ? gpio0_out[i] : 1'bz;
+		assign gpio0_in[i] = gpio0_dir[i] ? gpio0_out[i] : io_gpio0[i];
+	end
+endgenerate
+
+wire            wb_m2s_sel_gpio0;
+wire  [31:0]    wb_s2m_data_gpio0;
+wire            wb_s2m_ack_gpio0;
+wire            wb_s2m_err_gpio0;
+wire            wb_s2m_stall_gpio0;
+wb_gpio gpio0 (
+	.i_clk		(i_clk),
+	.i_reset_n  (i_resetn),
+	// Wishbone slave interface
+	.wb_adr_i	(i_wb_addr),
+	.wb_dat_i	(i_wb_data),
+	.wb_we_i	(i_wb_we),
+	.wb_cyc_i	(i_wb_cyc),
+	.wb_stb_i	((i_wb_stb)&&(wb_m2s_sel_gpio0)),
+	.wb_cti_i	(wb_m2s_sel_gpio0),
+	.wb_bte_i	(),
+	.wb_dat_o	(wb_s2m_data_gpio0),
+	.wb_ack_o	(wb_s2m_ack_gpio0),
+	.wb_err_o	(wb_s2m_err_gpio0),
+	.wb_rty_o	(),
+	// GPIO bus
+	.gpio_i		(gpio0_in),
+	.gpio_o		(gpio0_out),
+	.gpio_dir_o	(gpio0_dir)
+);
+
 // SEL
 wire wb_none_sel;
 assign wb_m2s_sel_leds  = (i_wb_addr == WB_SLAVE_ADDR_LED);
 assign wb_m2s_sel_cdt   = (i_wb_addr == WB_SLAVE_ADDR_CDT);
-assign wb_none_sel      = (!wb_m2s_sel_leds)&&(!wb_m2s_sel_cdt);
+assign wb_m2s_sel_gpio0   = (i_wb_addr == WB_SLAVE_ADDR_GPIO0_DATA)||(i_wb_addr == WB_SLAVE_ADDR_GPIO0_DIR);
+assign wb_none_sel      = (!wb_m2s_sel_leds)&&(!wb_m2s_sel_cdt)&&(!wb_m2s_sel_gpio0);
 
 // ERROR
 reg wb_err;
@@ -111,6 +157,8 @@ always @(posedge i_clk) begin
 	    wb_err_slaves <= (wb_s2m_err_leds);
     else if(wb_s2m_err_cdt) 
         wb_err_slaves <= (wb_s2m_err_cdt);
+    else if(wb_s2m_err_gpio0) 
+        wb_err_slaves <= (wb_s2m_err_gpio0);
     else 
 	    wb_err_slaves <= 1'b0;
 end
@@ -127,6 +175,8 @@ always @(posedge i_clk)
 	    wb_stall <= (wb_s2m_stall_leds);
     else if(wb_s2m_stall_cdt)
 	    wb_stall <= wb_s2m_stall_cdt;
+    else if(wb_s2m_stall_gpio0)
+	    wb_stall <= wb_s2m_stall_gpio0;
     else 
 	    wb_stall <= 1'b0;
 assign o_wb_stall = wb_stall;
@@ -135,9 +185,11 @@ assign o_wb_stall = wb_stall;
 reg wb_ack;
 always @(posedge i_clk)
     if(wb_s2m_ack_leds)
-	    wb_ack <= (wb_s2m_ack_leds)||(wb_s2m_ack_cdt);
+	    wb_ack <= (wb_s2m_ack_leds);
     else if(wb_s2m_ack_cdt)
-	    wb_ack <= (wb_s2m_ack_leds)||(wb_s2m_ack_cdt);
+	    wb_ack <= (wb_s2m_ack_cdt);
+    else if(wb_s2m_ack_gpio0)
+	    wb_ack <= (wb_s2m_ack_gpio0);
     else 
 	    wb_ack <= 1'b0;
 assign o_wb_ack = wb_ack;
@@ -149,6 +201,8 @@ always @(posedge i_clk) begin
 		wb_data <= wb_s2m_data_leds;
     else if (wb_s2m_ack_cdt)
 		wb_data <= wb_s2m_data_cdt;
+    else if (wb_s2m_ack_gpio0)
+		wb_data <= wb_s2m_data_gpio0;
 	else
 		wb_data <= 32'h0;
 end

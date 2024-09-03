@@ -62,6 +62,8 @@ module wb_picorv32 (
    wire                       cdt_sel;
    wire                       cdt_ready;
    wire [31:0]                cdt_data_o;
+   wire                       gpio0_sel;
+   wire                       gpio0_ready;
    wire                       uart_sel;
    wire [31:0]                uart_data_o;
    wire                       uart_ready;
@@ -89,11 +91,13 @@ module wb_picorv32 (
    assign leds_sel = mem_valid && (mem_addr == 32'h80000000);
    assign uart_sel = mem_valid && ((mem_addr & 32'hfffffff8) == 32'h80000008);
    assign cdt_sel =  mem_valid && (mem_addr == 32'h80000010);
+   assign gpio0_sel =  mem_valid && ((mem_addr == 32'h80000020)||(mem_addr == 32'h80000021));
 
    // Core can proceed regardless of *which* slave was targetted and is now ready.
    assign leds_ready = (leds_sel)&&(!i_wb_s2m_stall)&&(i_wb_s2m_ack);
    assign cdt_ready = (cdt_sel)&&(!i_wb_s2m_stall)&&(i_wb_s2m_ack);
-   assign mem_ready = mem_valid & (sram_ready | leds_ready | uart_ready | cdt_ready);
+   assign gpio0_ready = (gpio0_sel)&&(!i_wb_s2m_stall)&&(i_wb_s2m_ack);
+   assign mem_ready = mem_valid & (sram_ready | leds_ready | uart_ready | cdt_ready | gpio0_ready);
 
 
    // Select which slave's output data is to be fed to core.
@@ -101,6 +105,7 @@ module wb_picorv32 (
                       uart_sel ? uart_data_o    :
                       leds_sel ? wb_mem_rdata   :
                       cdt_sel  ? wb_mem_rdata   : 
+                      gpio0_sel  ? wb_mem_rdata   : 
                       32'h0;
 
   reg [5:0] leds;
@@ -172,7 +177,7 @@ wire wb_we;
 assign wb_we = (mem_wstrb[0] | mem_wstrb[1] | mem_wstrb[2] | mem_wstrb[3]);
 
 wire wb_slave_sel;
-assign wb_slave_sel = (leds_sel)||(cdt_sel);
+assign wb_slave_sel = (leds_sel)||(cdt_sel)||(gpio0_sel);
 
 initial	o_wb_m2s_cyc = 1'b0;
 initial	o_wb_m2s_stb = 1'b0;

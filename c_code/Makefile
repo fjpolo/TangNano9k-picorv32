@@ -28,9 +28,12 @@ uart.o: uart.c
 leds.o: leds.c
 	$(CC) $(CFLAGS) -c leds.c
 
-prog.elf: startup.s main.o countdown_timer.o uart.o leds.o
+gpio.o: gpio.c
+	$(CC) $(CFLAGS) -c gpio.c
+
+prog.elf: startup.s main.o countdown_timer.o uart.o leds.o gpio.o
 	$(CC) $(CFLAGS) -Tlink_cmd.ld -o prog.elf startup.s main.o countdown_timer.o \
-          uart.o leds.o $(LIBS)
+          uart.o leds.o gpio.o $(LIBS)
 
 prog.bin: prog.elf
 	$(OBJCOPY) prog.elf -O binary prog.bin
@@ -40,5 +43,5 @@ prog.hex: prog.bin
 	od -v -Ax -t x4 prog.bin > prog.hex
 
 clean:
-	rm -f prog.elf prog.hex prog.bin main.o conv_to_init countdown_timer.o uart.o leds.o
+	rm -f prog.elf prog.hex prog.bin main.o conv_to_init countdown_timer.o uart.o leds.o gpio.o
 
