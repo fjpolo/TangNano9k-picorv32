@@ -56,7 +56,7 @@ wire  [31:0]    wb_s2m_data_leds;
 wire            wb_s2m_ack_leds;
 wire            wb_s2m_err_leds;
 wire            wb_s2m_stall_leds;
-wb_tang_leds wb_soc_leds(
+wb_leds wb_soc_leds(
 .i_clk(i_clk),
 .i_reset_n(i_resetn),
 // LEDS

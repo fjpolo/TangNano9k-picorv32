@@ -9,7 +9,7 @@
 /****************************************************************/
 `default_nettype none
 
-module wb_tang_leds
+module wb_leds
   (
     input wire            i_clk,
     input wire            i_reset_n,

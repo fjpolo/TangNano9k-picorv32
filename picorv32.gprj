@@ -15,10 +15,10 @@
         <File path="src/top.v" type="file.verilog" enable="1"/>
         <File path="src/uart_wrap.v" type="file.verilog" enable="1"/>
         <File path="src/wb_countdown_timer.v" type="file.verilog" enable="1"/>
-        <File path="src/wb_gpios.v" type="file.verilog" enable="1"/>
+        <File path="src/wb_gpio.v" type="file.verilog" enable="1"/>
         <File path="src/wb_interconnect.v" type="file.verilog" enable="1"/>
+        <File path="src/wb_leds.v" type="file.verilog" enable="1"/>
         <File path="src/wb_picorv32.v" type="file.verilog" enable="1"/>
-        <File path="src/wb_tang_nano_9k_leds.v" type="file.verilog" enable="1"/>
         <File path="src/picorv32.cst" type="file.cst" enable="1"/>
         <File path="src/picorv32.sdc" type="file.sdc" enable="1"/>
     </FileList>
