@@ -1,2 +1,6 @@
-wb_tang_nano_9k_leds_cvr/
-wb_tang_nano_9k_leds_prf/
+wb_countdown_timer_cvr/
+wb_countdown_timer_prf/
+wb_gpio_cvr/
+wb_gpio_prf/
+wb_leds_cvr/
+wb_leds_prf/

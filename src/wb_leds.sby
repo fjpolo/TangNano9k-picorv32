@@ -1,0 +1,20 @@
+[tasks]
+cvr
+prf
+
+[options]
+prf: mode prove
+prf: depth 32
+cvr: mode cover
+cvr: depth 32
+
+[engines]
+smtbmc
+
+[script]
+read -sv -DWB_LEDS_STANDALONE -formal wb_leds.v
+cvr: hierarchy -top wb_leds
+prep -top wb_leds
+
+[files]
+wb_leds.v
