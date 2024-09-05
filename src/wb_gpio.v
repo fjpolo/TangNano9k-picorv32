@@ -62,14 +62,15 @@ always @(posedge i_clk) begin
      end
 
 // ACK generation
-always @(posedge i_clk)
-	if (~i_reset_n)
-		wb_ack_o <= 0;
-	else if (wb_ack_o)
-		wb_ack_o <= 0;
-	else if (wb_cyc_i & wb_stb_i & !wb_ack_o)
-		wb_ack_o <= 1;
+// always @(posedge i_clk)
+// 	if (~i_reset_n)
+// 		wb_ack_o <= 0;
+// 	else if (wb_ack_o)
+// 		wb_ack_o <= 0;
+// 	else if (wb_cyc_i & wb_stb_i & !wb_ack_o)
+// 		wb_ack_o <= 1;
 
+assign wb_ack_o = wb_stb_i;
 assign wb_err_o = 0;
 assign wb_rty_o = 0;
 
