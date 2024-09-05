@@ -69,8 +69,8 @@ always @(posedge i_clk) begin
 // 		wb_ack_o <= 0;
 // 	else if (wb_cyc_i & wb_stb_i & !wb_ack_o)
 // 		wb_ack_o <= 1;
-assign wb_ack_o = ((wb_cyc_i)&&(wb_stb_i)&&(!wb_ack_o)) ? 1'b1 : 1'b0;
 
+assign wb_ack_o = wb_stb_i;
 assign wb_err_o = 0;
 assign wb_rty_o = 0;
 
