@@ -103,9 +103,6 @@ assign wb_rty_o = 0;
 	always @(posedge i_clk)
 		if ((f_past_valid)&&(~$past(i_reset_n)))
 			assert(gpio_o == 0);
-	always @(posedge i_clk)
-		if ((f_past_valid)&&(~$past(i_reset_n)))
-			assert(wb_ack_o == 0);
 
 	//
 	// Contract

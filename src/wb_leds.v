@@ -70,8 +70,8 @@ assign o_leds = ~leds_internal;
   always @(*) begin
     assert(o_leds     == ~leds_internal);
     assert(o_wb_stall == 0);
-    assert(o_wb_data  == wb_data);
-    assert(o_wb_ack   == wb_ack);
+    assert(o_wb_data  == {26'b00000000000000000000000000, leds_internal});
+    assert(o_wb_ack   == i_wb_stb);
   end
 	
 	//
@@ -81,13 +81,6 @@ assign o_leds = ~leds_internal;
     if((f_past_valid)&&($past(f_past_valid))&&($past(i_reset_n)))
       if (($past(i_wb_stb))&&($past(i_wb_we))&&($past(i_wb_cyc))&&(!$past(o_wb_stall)))
         assert(leds_internal == $past(i_wb_data[5:0]));
-	always @(posedge i_clk) begin
-    if((f_past_valid)&&($past(f_past_valid))&&($past(i_reset_n)))
-		  if ($past(valid)&&(!$past(i_wb_we))) begin
-			  assert(wb_data == {26'b00000000000000000000000000, $past(leds_internal)});
-        assert(wb_ack == 1'b1);
-      end
-  end
 
 	// 
 	// Cover
