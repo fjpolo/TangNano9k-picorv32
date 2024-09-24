@@ -24,7 +24,7 @@ module wb_gpio(
 	input wire		  [2:0]		wb_cti_i,
 	input wire		  [1:0]	 	wb_bte_i,
 	output reg	      [7:0]	  	wb_dat_o,
-	output reg		            wb_ack_o,
+	output wire		            wb_ack_o,
 	output wire     	        wb_err_o,
 	output wire     	        wb_rty_o,
   	// GPIO
